@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres
+    restart: unless-stopped
+    volumes:
+      - db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=$POSTGRES_USER
+      - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+      - POSTGRES_DB=$POSTGRES_DATABASE
+    ports:
+      - $POSTGRES_LOCAL_PORT:$POSTGRES_DOCKER_PORT
+    networks:
+      - backend
+  
+  backend-express:
+    depends_on:
+      - postgres
+    build: ./backend-express-psql/
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - $PORT:$PORT
+    environment:
+      - DB_HOST=$POSTGRES_USER
+      - DB_USER=$POSTGRES_USER
+      - DB_PASSWORD=$POSTGRES_PASSWORD
+      - DB_NAME=$POSTGRES_DATABASE
+      - DB_PORT=$POSTGRES_LOCAL_PORT
+      - CLIENT_ORIGIN=$CLIENT_ORIGIN
+    networks:
+      - backend
+
+  frontend-react:
+    build:
+        context: ./frontend-react/
+        args:
+          - REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - 8081:$PORT_DOCKER
+volumes: 
+  db:
+
+networks:
+  backend:

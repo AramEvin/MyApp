@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  example-ui:
+    build:
+      context: .
+      args:
+        - REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL
+    ports:
+      - $PORT:$PORT
+    networks:
+      - frontend  
