@@ -14,12 +14,19 @@ services:
       - $POSTGRES_LOCAL_PORT:$POSTGRES_DOCKER_PORT
     networks:
       - backend
+    healthcheck:
+      test: pg_isready -U postgres
+      interval: 10s
+      timeout: 10s
+      retries: 20
+
   
   backend-express:
     image: evinaram/backend-express-psql
     build: backend-express-psql/
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
     ports:
       - $PORT:$PORT
@@ -32,13 +39,21 @@ services:
       - CLIENT_ORIGIN=$CLIENT_ORIGIN
     networks:
       - backend
+    healthcheck:
+      test: wget --spider http://localhost:8080/api/tutorials
+      interval: 10s
+      retries: 20
+
 
   frontend-react:
     image: evinaram/frontend-react
+    depends_on:
+      backend-express:
+        condition: service_healthy
     build:
-        context: frontend-react/
-        args:
-          - REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL
+      context: frontend-react/
+      args:
+        - REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL
     restart: unless-stopped
     ports:
       - 8081:$PORT_DOCKER
