@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres
+    restart: always
+    volumes:
+      - db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=example_db
+    ports:
+      - 5432:5432
+    networks:
+      - backend
+    healthcheck:
+      test: pg_isready -U postgres
+      interval: 5s
+      timeout: 5s
+      retries: 25
+  
+  backend-express:
+    depends_on:
+      - postgres
+    build: ./backend-express-psql/
+    restart: always
+    env_file: .env
+    ports:
+      - 8080:8080
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=example_db
+      - DB_PORT=5432
+      - CLIENT_ORIGIN=http://127.0.0.1:8081
+    networks:
+      - backend
+    healthcheck:
+      test: wget --spider http://localhost:8080/api/tutorials
+      interval: 5s
+      retries: 25
+
+  frontend-react:
+    depends_on:
+      - backend-express
+    build:
+      context: ./frontend-react/
+      args:
+        - REACT_APP_API_BASE_URL=http://127.0.0.1:8080/api/tutorials
+    restart: always
+    env_file: .env
+    ports:
+      - 8081:80
+volumes: 
+  db:
+
+networks:
+  backend:
