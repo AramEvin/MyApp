@@ -29,7 +29,7 @@ spec:
           - configMapRef:
               name: postgres-configmap
         ports:
-        - name: postgres-port
+        - name: postgres
           containerPort: 5432
 ---
 apiVersion: v1
@@ -42,4 +42,4 @@ spec:
   ports:
     - protocol: TCP
       port: 5432
-      targetPort: postgres-port
+      targetPort: postgres
