@@ -17,9 +17,6 @@ spec:
       containers:
         - name: frontend
           image: evinaram/frontend-react:latest
-          envFrom:
-            - configMapRef:
-                name: frontend-configmap
           ports:
           - name: frontend-port
             containerPort: 80
@@ -35,8 +32,3 @@ spec:
     - protocol: TCP
       port: 8081
       targetPort: frontend-port
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: frontend-configmap
